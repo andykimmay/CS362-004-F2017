@@ -1,0 +1,404 @@
+Results for running dominion tests:
+unittest1.c:
+Counting number of coppers
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+adventurer
+Count of coppers in hand: 4
+Player 0's discard pile:
+Count of coppers in discard: 0
+Player 0's deck:
+estate
+estate
+copper
+copper
+copper
+Count of coppers in deck: 3
+
+Total number of coppers: 7
+
+Calling full deck count for coppers: 7
+
+Pass - correct count of coppers
+
+Testing for discard count
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+copper
+copper
+copper
+Count of adventurer in hand: 0
+Player 0's discard pile:
+estate
+estate
+adventurer
+Count of adventurer in discard: 1
+Player 0's deck:
+Count of adventurer in deck: 0
+
+
+Total number of adventurer: 1
+
+Calling full deck count for adventurer: 0
+
+Test Failed
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+unittest2.c:
+Testing function getCost.
+
+0
+2
+5
+8
+0
+3
+6
+6
+5
+4
+4
+5
+4
+4
+3
+4
+3
+5
+3
+5
+3
+4
+2
+5
+4
+4
+4
+Success!
+
+Test card that doesn't exist
+
+-1
+Success!
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+unittest3.c:
+Testing function gainCard.
+
+Initial deck
+Player 0's deck:
+estate
+estate
+copper
+copper
+copper
+Gain embargo card to deck
+Player 0's deck:
+estate
+estate
+copper
+copper
+copper
+embargo
+Success!
+
+Gain embargo card to hand
+
+Initial hand
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+embargo
+Success!
+
+Gain embargo card to discard
+
+Initial discard
+
+Player 0's discard pile:
+Player 0's discard pile:
+embargo
+Success!
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+unittest4.c:
+Testing function supplyCount.
+
+Supply count: 46
+
+Success!
+
+Supply count: 8
+
+Success!
+
+Supply count: 10
+
+Success!
+
+Supply count: -1
+
+Success!
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+cardtest1.c:
+----------------- Testing Card: adventurer ----------------
+TEST 1: Confirm card adds 2 treasure cards
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+adventurer
+Number of treasure cards: 4
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+adventurer
+Number of treasure cards: 4
+
+Call adventurer card effect
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+copper
+copper
+copper
+Number of treasure cards: 7
+
+Test Failed - Adventurer card did not add 2 treasure cards
+
+TEST 2: Confirm discard of adventurer card and non-treasure cards
+Player 0's discard pile:
+Player 0's discard pile:
+
+Call adventurer card effect
+
+Player 0's discard pile:
+estate
+estate
+adventurer
+
+Success - Adventurer card discarded and non-treasure cards
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+cardtest2.c:
+----------------- Testing Card: smithy ----------------
+TEST 1: Confirm card adds 3 cards (and discards smithy)
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+smithy
+Number of cards in hand: 6
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+smithy
+Number of cards in hand: 6
+
+Call smithy card effect
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+estate
+copper
+copper
+copper
+Number of cards in hand: 9
+
+Test Failed - did not add 3 cards
+
+TEST 2: Confirm discard of smithy card
+Player 0's discard pile:
+Player 0's discard pile:
+
+Call smithy card effect
+
+Player 0's discard pile:
+smithy
+
+Success!
+
+ >>>>> SUCCESS: Testing complete smithy <<<<<
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+cardtest3.c:
+----------------- Testing Card: village ----------------
+TEST 1: Confirm village adds a card and discards itself
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+village
+Number of cards in hand: 6
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+village
+Number of cards in hand: 6
+
+Call village card effect
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+copper
+Number of cards in hand: 6
+
+
+Success - card added!
+
+Player 0's discard pile:
+village
+
+Success - village discarded
+
+TEST 2: Confirm that village adds an additional action
+
+Number of Actions before Village: 1
+
+Number of Actions after Village: 3
+Test Failed - village card did not add a single action
+
+ >>>>> SUCCESS: Testing complete village <<<<<
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+
+cardtest4.c:
+----------------- Testing Card: council room ----------------
+TEST 1: Confirm card adds 4 cards
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+council room
+Number of cards in hand: 6
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+council room
+Number of cards in hand: 6
+
+Call council room card effect
+
+Player 0's Hand:
+copper
+copper
+estate
+copper
+copper
+estate
+copper
+copper
+copper
+Number of cards in hand: 9
+
+Success!
+
+Player 0's discard pile:
+council room
+
+Success - council room discarded
+
+
+TEST 2: Confirm council room adds an additional buy
+
+Number of Buys before council room: 1
+
+Number of Buys after council room: 2
+
+Success!
+
+
+TEST 3: Confirm council room adds a card for other players
+Player 1's hand before and after council room
+Player 1's Hand:
+Number of cards in hand: 0
+
+Player 1's Hand:
+copper
+Number of cards in hand: 1
+
+
+Success!
+
+ >>>>> SUCCESS: Testing complete council room <<<<<
+
+File 'dominion.c'
+Lines executed:37.10% of 558
+Creating 'dominion.c.gcov'
+

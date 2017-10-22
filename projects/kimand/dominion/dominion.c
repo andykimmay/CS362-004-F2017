@@ -643,28 +643,21 @@ int getCost(int cardNumber)
   return -1;
 }
 
-int adventurer_card_function(int *dt, struct gameState **s, int *cp, int *cd, int *tempZ, int *tempH)
+int adventurer_card_function(int *dt, struct gameState **s, int *cp, int *cd, int *h)
 {
-	while(*dt<3){
-		printf("drawn treasure: %d\n",*dt);
-		if ((*s)->deckCount[*cp] <1){//if the deck is empty we need to shuffle discard and add to deck
-			shuffle(*cp, *s);
-		}
+	while(*dt<4){
+		//printf("drawn treasure: %d\n",*dt);
 		drawCard(*cp, *s);
 		*cd = (*s)->hand[*cp][(*s)->handCount[*cp]-1];//top card of hand is most recently drawn card.
+		//printf("drawn card: %d\n",*cd);
 		if (*cd == copper || *cd == silver || *cd == gold)
 			(*dt)++;
 		else{
-			tempH[*tempZ]=*cd;
-			(*s)->handCount[*cp]--; //this should just remove the top card (the most recently drawn one).
-			*tempZ++;
+			discardCard(((*s)->handCount[*cp]-1), *cp, *s, 0);
 		}
-		printf("drawn treasure: %d\n",*dt);
 	}
-	while(*tempZ-1>=0){
-		(*s)->discard[*cp][(*s)->discardCount[*cp]++]=tempH[*tempZ-1]; // discard all cards in play that have been drawn
-		*tempZ=*tempZ-1;
-	}
+	//discard card
+	discardCard(*h, *cp, *s, 0);
 	return 0;
 	
 }
@@ -678,7 +671,7 @@ int smithy_card_function(int *cp, struct gameState **s, int *h)
 		drawCard(*cp, *s);
 	}
 
-	//discard card from hand
+	//discard card
 	discardCard(*h, *cp, *s, 0);
 	return 0;
 }
@@ -687,15 +680,16 @@ int village_card_function(int *cp, struct gameState **s, int *h)
 {
 	//+1 Card
 	drawCard(*cp, *s);
-	drawCard(*cp, *s);
+	//drawCard(*cp, *s);
 
 	//+2 Actions
 	(*s)->numActions = (*s)->numActions + 2;
-
-	//discard played card from hand
+	
+	//discard card
 	discardCard(*h, *cp, *s, 0);
 	return 0;
 }
+
 int great_hall_card(int *cp, struct gameState **s, int *h)
 {
 	//+1 Card
@@ -704,8 +698,8 @@ int great_hall_card(int *cp, struct gameState **s, int *h)
 	//+1 Actions
 	(*s)->numActions++;
 	(*s)->numActions++;
-
-	//discard card from hand
+	
+	//discard card
 	discardCard(*h, *cp, *s, 0);
 	return 0;
 }
@@ -743,7 +737,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 	switch( card ) 
 	{
 		case adventurer:
-			adventurer_card_function(&drawntreasure, &state, &currentPlayer, &cardDrawn, &z, &temphand);
+			adventurer_card_function(&drawntreasure, &state, &currentPlayer, &cardDrawn, &handPos);
 			return 0;
 		case council_room:
 			//+4 Cards

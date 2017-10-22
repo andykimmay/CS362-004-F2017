@@ -8,158 +8,123 @@
 
 #define TESTCARD "adventurer"
 
+//function to get name of card
 const char* getCardName(enum CARD card)
 {
 	switch(card)
 	{
 		case estate: return "estate";
 		case copper: return "copper";
+		case adventurer: return "adventurer";
 	}
 }		     
 
-void showHand(int player, struct gameState *state) {
+//function to print out the player's hand to confirm test
+int showHand(int player, struct gameState *state, int *tc) {
 	int i, j;
+	*tc=0;
 	j = state->handCount[player];
 	printf("Player %d's Hand:\n", player);
 	for (i=0;i<j;i++)
 	{
-		printf("%s\n", getCardName(state->deck[player][i]));
+		printf("%s\n", getCardName(state->hand[player][i]));
+		if(state->hand[player][i] == copper)
+			(*tc)++;
 	}
+	printf("Number of treasure cards: %d\n\n",*tc);
+	return *tc;
 }
 
-//void testPointer(int *testing)
-//{
-	//printf("testing pointer: %d\n",*testing);
-	//*testing = *testing + 1;
-	//printf("testing pointer: %d\n",*testing);
-//}
-
+//function to print out player's deck prior to drawing cards
+int showDiscard(int player, struct gameState *state) {
+	int i = 0;
+	int playedCards = state->playedCardCount;
+	printf("Player %d's discard pile:\n", player);
+	for (i=0;i<playedCards;i++)
+	{
+		printf("%s\n", getCardName(state->playedCards[i]));
+		if (state->playedCards[i] == copper)
+			return 1;
+		else if (state->playedCards[i] == adventurer)
+			return 2;
+	}
+	return 0;
+}
 
 int main() {
-	int newCards = 0;
-	int discarded = 1;
-	int xtraCoins = 0;
-	int shuffledCards = 0;
-	int i, j, m;
-	int handpos = 0, choice1 = 0, choice2 = 0, choice3 = 0, bonus = 0;
-	int remove1, remove2;
-    	int seed = 1000;
+	int handpos = 5, choice1 = 0, choice2 = 0, choice3 = 0, bonus = 0;
+    	int treasure1 = 0, treasure2 = 0;
+	int seed = 1000;
 	int numPlayers = 2;
-	int thisPlayer = 0;
 	struct gameState G, testG;
 	int k[10] = {adventurer, embargo, village, minion, mine, cutpurse,
 			sea_hag, tribute, smithy, council_room};
 
-	// initialize a game state and player cards//
+	// initialize a game state
 	initializeGame(numPlayers, k, seed, &G);
+
+	//add adventurer card to game state
+	G.hand[0][5] = adventurer;
+	G.handCount[0] = G.handCount[0] + 1;
 
 	printf("----------------- Testing Card: %s ----------------\n", TESTCARD);
 
 	// ----------- TEST 1: confirm that adventurer adds 3 treasure cards --------------
-	printf("TEST 1: Confirm card adds 3 treasure cards\n");
+	printf("TEST 1: Confirm card adds 2 treasure cards\n");
 
 	// copy the game state to a test case
 	memcpy(&testG, &G, sizeof(struct gameState));
 
-	showHand(0,&G);	
-	showHand(0,&testG);
+	//hand of player 0 before cardeffect
+	showHand(0,&G, &treasure1);	
+	showHand(0,&testG, &treasure2);
 
-	showHand(1,&G);
-	showHand(1, &testG);
-	
+	printf("Call adventurer card effect\n\n");
+
+	//call cardeffect
 	cardEffect(adventurer, choice1, choice2, choice3, &testG, handpos, &bonus);
 
-	showHand(0,&G);
-	showHand(0,&testG);
+	//hand of player 0 after cardeffect
+	showHand(0, &testG, &treasure2);
+	
+	if ((treasure2 - treasure1) == 2)	
+	{
+		//hand of player 1 after cardeffect
+		showHand(1,&G, &treasure1);
+		showHand(1, &testG, &treasure2);
+		if((treasure1 - treasure2) == 0)
+			printf("Success!\n");
+		else
+			printf("Test Failed - Affected Player 1's hand\n");
+	}
+	else
+		printf("Test Failed - Adventurer card did not add 2 treasure cards\n");
 
-	//printf("hand count = %d, expected = %d\n", testG.handCount[thisPlayer], G.handCount[thisPlayer] + newCards - discarded);
-	//printf("deck count = %d, expected = %d\n", testG.deckCount[thisPlayer], G.deckCount[thisPlayer] - newCards + shuffledCards);
-	//printf("coins = %d, expected = %d\n", testG.coins, G.coins + xtraCoins);
-	//assert(testG.handCount[thisPlayer] == G.handCount[thisPlayer] + newCards - discarded);
-	//assert(testG.deckCount[thisPlayer] == G.deckCount[thisPlayer] - newCards + shuffledCards);
-	//assert(testG.coins == G.coins + xtraCoins);
-
-	// ----------- TEST 2: choice1 = 2 = +2 coins --------------
-	printf("TEST 2: choice1 = 2 = +2 coins\n");
+	// ----------- TEST 2 & 3: Confirm discard of non-treasure cards + adventurer --------------
+	printf("\nTEST 2: Confirm discard of adventurer card and non-treasure cards\n");
 
 	// copy the game state to a test case
 	memcpy(&testG, &G, sizeof(struct gameState));
-	choice1 = 2;
-	cardEffect(steward, choice1, choice2, choice3, &testG, handpos, &bonus);
+	
+	//print out the cards in the discard pile
+	showDiscard(0,&G);
+	showDiscard(0,&testG);
 
-	newCards = 0;
-	xtraCoins = 2;
-	printf("hand count = %d, expected = %d\n", testG.handCount[thisPlayer], G.handCount[thisPlayer] + newCards - discarded);
-	printf("deck count = %d, expected = %d\n", testG.deckCount[thisPlayer], G.deckCount[thisPlayer] - newCards + shuffledCards);
-	printf("coins = %d, expected = %d\n", testG.coins, G.coins + xtraCoins);
-	assert(testG.handCount[thisPlayer] == G.handCount[thisPlayer] + newCards - discarded);
-	assert(testG.deckCount[thisPlayer] == G.deckCount[thisPlayer] - newCards + shuffledCards);
-	assert(testG.coins == G.coins + xtraCoins);
+	printf("\nCall adventurer card effect\n\n");
 
-	// ----------- TEST 3: choice1 = 3 = trash two cards --------------
+	//call cardeffect
+	cardEffect(adventurer, choice1, choice2, choice3, &testG, handpos, &bonus);
+	
+	int result;
+	result = showDiscard(0,&testG);
 
-	printf("TEST 3: choice1 = 3 = trash two cards\n");
-	choice1 = 3;
-
-	// cycle through each eligible combination of 2 cards to trash
-	for (i=1; i<G.handCount[thisPlayer]; i++) {
-		for (j=i+1; j<G.handCount[thisPlayer]; j++) {
-
-			G.hand[thisPlayer][0] = steward;
-			G.hand[thisPlayer][1] = copper;
-			G.hand[thisPlayer][2] = duchy;
-			G.hand[thisPlayer][3] = estate;
-			G.hand[thisPlayer][4] = feast;
-
-			// copy the game state to a test case
-			memcpy(&testG, &G, sizeof(struct gameState));
-
-			printf("starting cards: ");
-			for (m=0; m<testG.handCount[thisPlayer]; m++) {
-				printf("(%d)", testG.hand[thisPlayer][m]);
-			}
-			printf("; ");
-
-			choice2 = j;
-			choice3 = i;
-			remove1 = testG.hand[thisPlayer][i];
-			remove2 = testG.hand[thisPlayer][j];
-			cardEffect(steward, choice1, choice2, choice3, &testG, handpos, &bonus);
-
-			printf("removed: (%d)(%d); ", remove1, remove2);
-			printf("ending cards: ");
-
-			// tests that the removed cards are no longer in the player's hand
-			for (m=0; m<testG.handCount[thisPlayer]; m++) {
-				printf("(%d)", testG.hand[thisPlayer][m]);
-				assert(testG.hand[thisPlayer][m] != remove1);
-				assert(testG.hand[thisPlayer][m] != remove2);
-			}
-			printf(", expected: ");
-			for (m=1; m<G.handCount[thisPlayer]; m++) {
-				if (G.hand[thisPlayer][m] != G.hand[thisPlayer][i] && G.hand[thisPlayer][m] != G.hand[thisPlayer][j]) {
-					printf("(%d)", G.hand[thisPlayer][m]);
-				}
-			}
-			printf("\n");
-
-			// tests for the appropriate number of remaining cards
-			newCards = 0;
-			xtraCoins = 0;
-			discarded = 3;
-			if (i==1 && j==2) {
-				printf("hand count = %d, expected = %d\n", testG.handCount[thisPlayer], G.handCount[thisPlayer] + newCards - discarded);
-				printf("deck count = %d, expected = %d\n", testG.deckCount[thisPlayer], G.deckCount[thisPlayer] - newCards + shuffledCards);
-			}
-			assert(testG.handCount[thisPlayer] == G.handCount[thisPlayer] + newCards - discarded);
-			assert(testG.deckCount[thisPlayer] == G.deckCount[thisPlayer] - newCards + shuffledCards);
-		}
-
-	}
-
-	printf("\n >>>>> SUCCESS: Testing complete %s <<<<<\n\n", TESTCARD);
-
-
+	if (result == 1)
+		printf("\nTest Failed\n\n");
+	else if (result == 2)
+		printf("\nSuccess - Adventurer card discarded and non-treasure cards\n\n");
+	else
+		printf("\nTest Failed - Non-treasure cards discarded but not adventurer card\n\n");
+	
 	return 0;
 }
 
