@@ -1,0 +1,8 @@
+Results for running random tests:
+randomtestadventurer.c:
+----------------- Testing Card: adventurer ----------------
+Test Successful
+File 'dominion.c'
+Lines executed:12.37% of 558
+Creating 'dominion.c.gcov'
+
