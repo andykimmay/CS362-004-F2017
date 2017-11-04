@@ -1,0 +1,8 @@
+Results for running random tests:
+randomtestcard2.c:
+----------------- Testing Card: smithy ----------------
+Test Successful
+File 'dominion.c'
+Lines executed:12.37% of 558
+Creating 'dominion.c.gcov'
+
