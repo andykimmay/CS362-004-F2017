@@ -1,233 +1,157 @@
-//
-//  randomtestcard1.c
-//  Unit Tests Assignment3
-//
-//  This program tests the smithyRef function randomly
-//
-//  Created by David White on 10/25/17.
-//  Copyright © 2017 Oregon State University. All rights reserved.
-//
-
 #include "dominion.h"
 #include "dominion_helpers.h"
-#include "rngs.h"
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <stdio.h>
+#include <assert.h>
+#include "rngs.h"
+#include <stdlib.h>
+#include <math.h>
 
-void checkSmithyRef(struct gameState *state, int handPos);
-void printGameState(struct gameState *Pre, struct gameState *Post);
-void fillWithCards(struct gameState *state);
-int addRandomSmithy(struct gameState *state);
+#define TESTCARD "village"
+#define iterations 50
 
-int main(){
-    int turn,deckCnt,discardCnt,handCnt,players,handPos;
-    int seed=1000;
-    int tests=100000;     //number of tests to run
-   
-    int k[10]={adventurer,council_room,feast,gardens,mine,remodel,smithy,
-        village,baron,great_hall};
-    
-    struct gameState G;
-    
-    printf("Testing smithy.\n");
-    printf("Random Tests.\n");
-    
-    srand(seed);
-    
-    for(int rep=0;rep<tests;rep++){
+//function to get name of card
+const char* getCardName(enum CARD card)
+{
+	switch(card)
+	{
+		case estate: return "estate";
+		case copper: return "copper";
+		case adventurer: return "adventurer";
+		case embargo: return "embargo";
+		case village: return "village";
+		case minion: return "minion";
+		case mine: return "mine";
+		case cutpurse: return "cutpurse";
+		case sea_hag: return "sea_hag";
+		case tribute: return "tribute";
+		case smithy: return "smithy";
+		case council_room: return "council_room";
+	}
+}		     
+//function to test for various aspects of test card effects
+int checkTestCard(int player, struct gameState *state)
+{
+	int i, x, y, a = 0, a2 = 0, dc = 0, dc2 = 0;
+	
+	x = state->handCount[player];
+	a = state->numActions;
+	dc = state->playedCardCount;
 
+	//call card effect
+	cardEffect(village, 0, 0, 0, state, state->handCount[player], 0);
+	
+	//adjust player handcount
+	y = state->handCount[player];
+	a2 = state->numActions;
+	dc2 = state->playedCardCount;
 
-        //initialize gameState
-        players=2+ rand()%(MAX_PLAYERS-1);      //range 2-4
-        initializeGame(players, k, seed, &G);
-        turn = rand()%players;                     //create a random players turn
-        deckCnt= rand() %  MAX_DECK;   //cards in deck
-        discardCnt =rand()%(500-deckCnt);  //cards in discard pile
-        handCnt=rand() % (MAX_DECK - deckCnt - discardCnt );   //cards in hand
-        G.whoseTurn = turn;
-        G.deckCount[turn] =deckCnt;
-        G.discardCount[turn]=discardCnt;
-        G.handCount[G.whoseTurn]=handCnt;
-        fillWithCards(&G);                                  //fills deck, hand and discard with random cards
-        handPos =addRandomSmithy(&G);
-        checkSmithyRef(&G,handPos);
-    }
+	//verify that village adds a card (minus 1 to discard village itself)
+	if(y - x != 0)
+	{
+		if(state->deckCount[player] == 0)
+		{	
+			return 0;
+		}
+		else
+		{
+			printf("Test Failed\n");
+			printf("Hand count before: %d ",x);
+			printf("Hand count after: %d\n", y);
+			for (i = 0; i < state->deckCount[player]; i++)
+			{
+				printf("%s\n",getCardName(state->deck[player][i]));
+			}
+			printf("%d\n",state->deckCount[player]);
+			return 1;
+		}
+	}
+	
+	//verify that village adds action
+	if(a2 - a != 2)
+	{
+		printf("Test Failed\n");
+		printf("Actions not added\n");
+		return 1;
+	}
+	
+	//if discard count is not 1 more than previous, return error
+	if(dc2 - dc != 1)
+	{
+		printf("Test Failed\n");
+		printf("Village card not discarded properly\n");
+		return 1;
+	}
+	return 0;
 }
 
-/*checkSmithyRef
- input: structure gameState
- output: none
- pre-condition: gamestate has been initialized with values
- post-condition: gamestate will be reflect playing 1 adventure card from the adventureRef function
- */
-void checkSmithyRef(struct gameState *post, int handPos){
-    int ret,  errors;
-    int turn = post->whoseTurn;
-    struct gameState pre;
-    errors =0;
-    memcpy(&pre,post, sizeof(struct gameState));            //save game state
-    
-    ret=smithyRef(post, handPos);
-    if(!ret){
-        //check if the correct # of cards are in the hand
-        if(post->handCount[turn]-pre.handCount[turn]!=2){
-            printf("***Error:Hand Count is incorrect: %d.  Pre: %d Post: %d\n",
-                   post->handCount[turn]-pre.handCount[turn],pre.handCount[turn], post->handCount[turn]);
-            errors++;
-        }
-        int deckDiff= pre.deckCount[turn] - post->deckCount[turn];
-        int handDiff=post->handCount[turn] - pre.handCount[turn];
-        int discardDiff = post->discardCount[turn] - pre.discardCount[turn];
-        //The number of cards that were moved to the deck should equal the number placed in the hand
-        //and discard pile
-        //First check without shuffle-- if deckDiff and discardDiff are negative- a re-shuffle has happened
-        if(deckDiff != 3 && (deckDiff>0 && discardDiff>0)){
-            printf("***Error: Too many cards removed from the deck: %d Expected: 3\n", deckDiff);
-            printf("\t Turn: %d Pre:%d Post: %d\n",turn, pre.deckCount[turn],post->deckCount[turn]);
-            printGameState(&pre, post);
-            errors++;
-        }
-        if(handDiff != 2){
-            printf("***Error: Too many cards added to the hand: %d Expected: 2\n", handDiff);
-            printGameState(&pre,post);
-            errors++;
-        }
-        if(discardDiff != 0 && (deckDiff>0 && discardDiff>0)){
-            printf("***Error: Too many cards added to the discard: %d Expected: 0\n", discardDiff);
-            printf("\t Pre:%d Post: %d\n",pre.discardCount[turn],post->discardCount[turn]);
-            printGameState(&pre,post);
-            errors++;
-        }
-        //Now check with shuffle
-        if(deckDiff<0 && discardDiff <0){
-            //If  a reshuffle happened, after a smithy is played, the discard pile should equal the difference of the deck+difference of the and +1 for the smithy discarded.
-            if(abs(deckDiff)+abs(handDiff)+1!=abs(discardDiff)){
-                printf("***Error: Error in shuffling card.");
-                printf("\tBefore Smithy- Deck:%d Hand: %d Discard: %d",pre.deckCount[turn],
-                       pre.handCount[turn], pre.discardCount[0]);
-                printf("\tAfter Smithy- Deck:%d Hand: %d Discard: %d",post->deckCount[turn],
-                       post->handCount[turn], post->discardCount[0]);
-            }
-        }
 
-    }
-    else{
-        printf("Unexpected error in return\n");
-        errors++;
-    }
-    //print number of errors in this iteration.
-    if(errors)
-        printf("%d errors in code\n",errors);
-    else
-        printf("Passed Tests\n");
+int main() {
+	int i;
+	int k[12] = {copper, estate, adventurer, embargo, village, minion, mine, cutpurse,
+			sea_hag, tribute, smithy, council_room};
+
+	SelectStream(2);
+	PutSeed(3);
+
+	printf("----------------- Testing Card: %s ----------------\n", TESTCARD);
+	
+	for(i = 0; i < iterations; i++)
+	{
+		int p, j, y, x;
+		
+		//initialize game state
+		struct gameState G;
+		G.phase = 0;
+		x = floor(Random() * 5);
+		G.numActions = x;
+		x = floor(Random() * 5);
+		G.numBuys = x;
+		G.playedCardCount = 0;
+		
+		//random number of players
+		p = (floor(Random()* 3) + 1);
+		G.numPlayers = p;
+
+		//fill deck and hand with random cards
+		for (j = 0; j < p; j++)
+		{
+			G.deckCount[j] = floor(Random() * MAX_DECK);
+			//printf("deck count: %d\n",G.deckCount[j]);
+			
+			//fill decks with random cards
+			for (y = 0; y < G.deckCount[j]; y++)
+			{
+				x = floor(Random() * 12);
+				G.deck[j][y] = k[x];
+				//printf("%d\n",y);
+				//printf("%s\n",getCardName(G.deck[j][y]));
+			}	
+			do
+			{	
+				G.handCount[j] = floor(Random() * MAX_DECK);	
+			}while(G.deckCount[j] < G.handCount[j]);
+
+			//printf("hand: \n");
+			for (y = 0; y < G.handCount[j]; y++)
+			{	
+				//drawCard(j, &G);
+				x = G.deckCount[j];
+				G.hand[j][y] = G.deck[j][x - 1];
+				G.deckCount[j]--;
+				//printf("%d\n",y);
+				//printf("%s\n",getCardName(G.hand[j][y]));
+			}
+			G.hand[j][G.handCount[j]] = adventurer;
+		}
+	
+		//run adventurer card test
+		if(checkTestCard(0,&G) == 1)
+			return 1;
+	}
+	printf("Test Successful\n");
+	return 0;
 }
 
-/*fillWithCards
- input: gameState
- output: nothing
- pre-condition: gamestate has been initialized
- post-condition: gamestate's discard, hand, and deck will be filled for the player whose turn it is.
- */
-void fillWithCards(struct gameState *State){
-    int turn = State->whoseTurn;
-    int deckCount=State->deckCount[turn];
-    int handCount=State->handCount[turn];
-    int discardCount=State->discardCount[turn];
-    
-    for(int i=0;i<deckCount;i++){
-        State->deck[turn][i]=floor(Random()*(great_hall - curse));
-    }
-    for(int i=0;i<handCount;i++){
-        State->hand[turn][i]=floor(Random()*(great_hall - curse));
-    }
-    for(int i=0;i<discardCount;i++){
-        State->discard[turn][i]=floor(Random()*(great_hall - curse));
-    }
-}
 
-/*addSmithy
- input: gamestate before the tests begin,
- output: returns the position of the randomly placed smithy
- pre-condition: The gamestate has been intiallized with cards in the players hand
- post-condition: The hand of the current player will have a smithy placed randomly in the deck
-        the function will return the location within the hand
- */
-int addRandomSmithy(struct gameState *state){
-    int handPos;
-    int turn = state->whoseTurn;
-    int handCnt = state->handCount[turn];
-    handPos = floor(Random()*handCnt);
-    //There must be a smithy in the hand in order to play the smithy card, therefore a smithy
-    //if a hand is empty, a smithy is placed in the hand.
-    if(handCnt==0){
-        state->hand[turn][0]=smithy;
-        state->handCount[turn]=1;
-        handPos=0;
-    }
-    else {
-        state->hand[turn][handPos]=smithy;
-    }
-//    printf("%d\n",handPos);
-    return handPos;
-}
 
-/*printfGameState
- input: gamestate at 2 different periods
- output: nothing
- pre-condition:Pre is the earlier gamestate Post is a later gamestate
- post-condition: none
- */
-void printGameState( struct gameState *Pre, struct gameState *Post){
-    char card[27][15]={"Curse","Estate","Duchy","Province","Copper","Silver","Gold",
-        "Adventurer", "Council_room","Feast","Gardens", "Mine","Remodel","Smithy","Village",
-        "Baron", "Great Hall", "Minion","Steward","Tribute","Ambassador","Cutpurse", "Embargo",
-        "Outpost", "Salvager","Sea Hag","Treasure Map"};
-    int who=Post->whoseTurn;
-    int preDeckCnt=Pre->deckCount[who];
-    int postDeckCnt=Post->deckCount[who];
-    int preHandCnt=Pre->handCount[who];
-    int postHandCnt=Post->handCount[who];
-    int preDiscardCnt=Pre->discardCount[who];
-    int postDiscardCnt=Post->discardCount[who];
-    
-    printf("Deck-  \tPre: %d  Post: %d\n",preDeckCnt, postDeckCnt);
-    printf("Cards Added:\n\t");
-    //Cards Added to deck
-    if(postDeckCnt -preDeckCnt >0){
-        for(int i=preDeckCnt;i<postDeckCnt;i++)
-            printf("%s ", card[ Post->deck[who][i] ]);
-    }
-    //Cards taken from Deck
-    else{
-        for(int i=postDeckCnt;i<preDeckCnt;i++)
-            printf("%s ", card[ Pre->deck[who][i] ]);
-    }
-    printf("\nHand- \tPre: %d Post: %d\n",preHandCnt,postHandCnt);
-    printf("Cards Added\n\t");
-    //Cards Added to hand
-    if(postHandCnt -preHandCnt >0){
-        for(int i=preHandCnt;i<postHandCnt;i++)
-            printf("%s ", card[ Post->hand[who][i] ]);
-    }
-    //Cards taken from Deck
-    else{
-        for(int i=postHandCnt;i<preHandCnt;i++)
-            printf("%s ", card[ Pre->hand[who][i] ]);
-    }
-    printf("\nDiscard- \tPre: %d Post: %d\n", preDiscardCnt, postDiscardCnt);
-    printf("Cards Added\n\t");
-    //Cards Added to discard
-    if(postDiscardCnt -preDiscardCnt >0){
-        for(int i=preDiscardCnt;i<postDiscardCnt;i++)
-            printf("%s ", card[ Post->discard[who][i] ]);
-    }
-    //Cards taken from Discard
-    else{
-        for(int i=postDiscardCnt;i<preDiscardCnt;i++)
-            printf("%s ", card[ Pre->discard[who][i] ]);
-    }
-    printf("\n");
-}

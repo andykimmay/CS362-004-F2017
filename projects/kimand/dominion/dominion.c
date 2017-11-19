@@ -645,7 +645,7 @@ int getCost(int cardNumber)
 
 int adventurer_card_function(int *dt, struct gameState **s, int *cp, int *cd, int *h)
 {
-	while(*dt<4){
+	while(*dt<3){
 		//printf("drawn treasure: %d\n",*dt);
 		drawCard(*cp, *s);
 		*cd = (*s)->hand[*cp][(*s)->handCount[*cp]-1];//top card of hand is most recently drawn card.

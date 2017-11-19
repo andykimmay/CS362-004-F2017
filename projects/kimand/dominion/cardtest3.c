@@ -101,7 +101,7 @@ int main() {
 	printf("\nNumber of Actions before Village: %d\n",actionB);
 	printf("\nNumber of Actions after Village: %d\n",actionA);
 
-	if (actionA - actionB == 1)
+	if (actionA - actionB == 2)
 		printf("Success!\n");
 	else
 		printf("Test Failed - village card did not add a single action\n");

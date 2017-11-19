@@ -9,6 +9,7 @@
 
 #define TESTCARD "adventurer"
 #define iterations 50
+#define MAX_DECK 100
 
 //function to get name of card
 const char* getCardName(enum CARD card)
@@ -94,7 +95,7 @@ int main() {
 	PutSeed(3);
 
 	printf("----------------- Testing Card: %s ----------------\n", TESTCARD);
-	
+		
 	for(i = 0; i < iterations; i++)
 	{
 		int p, j, y, x;
